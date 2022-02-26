@@ -313,7 +313,7 @@ class WeWard:
                     steps = random.randint(1550, 2500)
                 elif job_number == 2:
                     if "validate_steps_between_12_13" in self.strict_challenges:
-                        time.sleep((60 * 2) + random.randint(0, 30))
+                        time.sleep((60 * 60 * 2) + random.randint(0, 30))
                         skip_sleep = True
 
                     if "5K_steps_half_hour" in self.strict_challenges:
