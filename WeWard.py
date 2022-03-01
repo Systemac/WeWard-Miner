@@ -51,13 +51,9 @@ class WeWard:
         self.strict_challenges = []
         self.last_steps = 0
 
-    def update_request_timestamp(self):
-        self.headers.update({ "ww_device_ts": str(int(time.time())) })
-
     @classmethod
     def request_signin_with_email(cls, email):
         url = "https://backend.prod.weward.fr/api/v1.0/customer/request_signin_with_email"
-        cls.update_request_timestamp(cls)
         unique_device_id = "".join(random.sample(string.printable[:61], 16))
         logger.info(f"Unique device id: {unique_device_id}")
         cls.headers.update({"ww-unique-device-id": unique_device_id})
@@ -68,7 +64,6 @@ class WeWard:
     @classmethod
     def signin_with_id_token(cls, id_token):
         url = "https://backend.prod.weward.fr/api/v1.0/customer/signin_with_id_token"
-        cls.update_request_timestamp(cls)
         response = requests.post(url, headers=cls.headers, json={"id_token": id_token})
         response = response.json()
         logger.info(response["token"])
@@ -188,14 +183,12 @@ class WeWard:
 
     def save_consents(self):
         url = "https://backend.prod.weward.fr/api/v1.0/customer/save_consents"
-        self.update_request_timestamp()
         response = requests.post(url, headers=self.headers, json={"cgu_consent": True, "rewards_consent": True, "ads_consent": True, "offers_consent": True})
         response = response.json()
         logger.info(response["message"])
 
     def update_step_source(self):
         url = "https://backend.prod.weward.fr/api/v1.0/customer/update_step_source"
-        self.update_request_timestamp()
         response = requests.post(url, headers=self.headers, json={"step_source": "GoogleFit"})
 
     def upload_profile_informations(self):
@@ -205,7 +198,6 @@ class WeWard:
         month = str(random.randint(1, 12)).zfill(2)
         year = random.randint(1960, 2002)
         birth_date = f"{day}-{month}-{year}"
-        self.update_request_timestamp()
         response = requests.post(url, headers=self.headers, json={
             "gender": gender,
             "birth_date": birth_date
@@ -215,12 +207,10 @@ class WeWard:
 
     def complete_sponsorship_step(self, sponsorship_code="ALEX-ugRUk"):
         url = "https://backend.prod.weward.fr/api/v1.0/customer/complete_sponsorship_step"
-        self.update_request_timestamp()
         response = requests.post(url, headers=self.headers, json={"sponsorship_code": sponsorship_code})
 
     def get_profile(self):
         url = "https://backend.prod.weward.fr/api/v1.0/customer/get_profile"
-        self.update_request_timestamp()
         response = requests.get(url, headers=self.headers)
         response = response.json()
         logger.info(
@@ -232,7 +222,6 @@ class WeWard:
     def print_missing_challenge(self):
         try:
             url = "https://backend.prod.weward.fr/api/v1.0/challenges_v2"
-            self.update_request_timestamp()
             response = requests.get(url, headers=self.headers)
             response = response.json()
             challenges = [c for c in response if c["level"] == self.challenge_level]
@@ -250,7 +239,6 @@ class WeWard:
         try:
             time.sleep(60 * random.randint(1, 5))
             url = "https://backend.prod.weward.fr/api/v1.0/ads_reward_v2"
-            self.update_request_timestamp()
             response = requests.post(url, headers=self.headers)
             response = response.json()
             logger.info(response["message"])
@@ -277,13 +265,11 @@ class WeWard:
             "steps_source": "googlefit",
             "data_sources": ["STEP_COUNTER"],
         }
-        self.update_request_timestamp()
         response = requests.post(url, headers=self.headers, json=payload)
         logger.info(response.text)
 
     def valid_step(self):
         url = "https://backend.prod.weward.fr/api/v1.0/valid_step"
-        self.update_request_timestamp()
         response = requests.post(url, headers=self.headers)
         response = response.json()
         logger.info(response["message"])
