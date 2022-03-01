@@ -16,9 +16,9 @@ python farm_accounts.py <email> <password>
 ```
 
 - The email password is required so we can use IMAP for reading emails and validate your account.
-- Remember to change the host, based on your email service. [#L153](https://github.com/Tkd-Alex/WeWard-Miner/blob/main/WeWard.py#L153)
-- If you want a different lang or country than **IT** change the lines [#L33-L34](https://github.com/Tkd-Alex/WeWard-Miner/blob/main/WeWard.py#L33-L34)
-- If you use the script `farm_accounts.py`, the new account will be automatically referred by my user code. Remember to change this code if you want to referral with your [#L216](https://github.com/Tkd-Alex/WeWard-Miner/blob/main/WeWard.py#L216)
+- Remember to change the host, based on your email service. [#148](https://github.com/Tkd-Alex/WeWard-Miner/blob/main/WeWard.py#148)
+- If you want a different lang or country than **IT** change the lines [#L34-L35](https://github.com/Tkd-Alex/WeWard-Miner/blob/main/WeWard.py#L34-L35) or use `change_country` method.
+- If you use the script `farm_accounts.py`, the new account will be automatically referred by my user code. Remember to change this code if you want to referral with your [#L232](https://github.com/Tkd-Alex/WeWard-Miner/blob/main/WeWard.py#L232)
 - At the end, the script will generate a session `.json` file
 
 #### Farm points
