@@ -135,3 +135,4 @@ dmypy.json
 *.chls
 
 !devices.json
+!requirements.txt
