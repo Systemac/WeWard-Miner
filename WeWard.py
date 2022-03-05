@@ -265,6 +265,37 @@ class WeWard:
         except Exception as e:
             logger.exception(e)
 
+    def location_campaign(self, latitude, longitude, per_page=50):
+        try:
+            params = (
+                ("latitude", latitude),
+                ("longitude", longitude),
+                ("per_page", per_page),
+            )
+
+            url = "https://backend.prod.weward.fr/api/v1.0/location_campaign"
+            response = requests.get(url, headers=self.headers, params=params)
+            response = response.json()
+        except Exception as e:
+            logger.exception(e)
+
+    def reward_visit_campaign(self, latitude, longitude, campaign_id):
+        try:
+            url = (
+                "https://backend.prod.weward.fr/api/v1.0/location/reward_visit_campaign"
+            )
+            payload = {
+                "latitude": latitude,
+                "longitude": longitude,
+                "campaign_id": campaign_id,
+            }
+            response = requests.post(url, headers=self.headers, json=payload)
+            logger.info(
+                f"{self.user_data['username']} ({self.user_data['email']}) - {response['message']}"
+            )
+        except Exception as e:
+            logger.exception(e)
+
     def ads_reward_v2(self, retry=True):
         try:
             url = "https://backend.prod.weward.fr/api/v1.0/ads_reward_v2"
