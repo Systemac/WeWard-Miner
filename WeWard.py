@@ -45,11 +45,16 @@ class WeWard:
 
         self.user_data = None
         self.get_profile()
-        self.print_missing_challenge()
+        self.load_challenges()
 
         self.strict_challenges = []
         self.already_visited = []
         self.last_steps = 0
+
+    def logger_info(self, message):
+        logger.info(
+            f"{self.user_data['username']} ({self.user_data['email']}) - {message}"
+        )
 
     def change_country(self, country):
         self.headers.update(
@@ -207,9 +212,7 @@ class WeWard:
             },
         )
         response = response.json()
-        logger.info(
-            f"{self.user_data['username']} ({self.user_data['email']}) - {response['message']}"
-        )
+        self.logger_info(response["message"])
 
     def update_step_source(self):
         url = "https://backend.prod.weward.fr/api/v1.0/customer/update_step_source"
@@ -226,9 +229,7 @@ class WeWard:
             url, headers=self.headers, json={"gender": gender, "birth_date": birth_date}
         )
         response = response.json()
-        logger.info(
-            f"{self.user_data['username']} ({self.user_data['email']}) - {response['message']}"
-        )
+        self.logger_info(response["message"])
 
     def complete_sponsorship_step(self, sponsorship_code="ALEX-ugRUk"):
         url = (
@@ -243,12 +244,12 @@ class WeWard:
         response = requests.get(url, headers=self.headers)
         self.user_data = response = response.json()
         self.challenge_level = response["challenge_level"]
-        logger.info(
-            f"{self.user_data['username']} ({self.user_data['email']}) - today_balance={response['today_balance']} ({response['today_balance'] * response['kward_to_eur']} Eur), balance={response['balance']} ({response['balance'] * response['kward_to_eur']} Eur), challenge_level={response['challenge_level']}"
+        self.logger_info(
+            f"today_balance={response['today_balance']} ({response['today_balance'] * response['kward_to_eur']} Eur), balance={response['balance']} ({response['balance'] * response['kward_to_eur']} Eur), challenge_level={response['challenge_level']}"
         )
         return response
 
-    def print_missing_challenge(self):
+    def load_challenges(self, print_challenges=False):
         try:
             url = "https://backend.prod.weward.fr/api/v1.0/challenges_v2"
             response = requests.get(url, headers=self.headers)
@@ -256,13 +257,12 @@ class WeWard:
             challenges = [c for c in response if c["level"] == self.challenge_level]
             missing = [c for c in challenges if c["completed"] is False]
             self.strict_challenges = [c["id"] for c in missing]
-            logger.info(
-                f"{self.user_data['username']} ({self.user_data['email']}) - Challenge missing: {len(missing)}/{len(challenges)}"
-            )
-            for i in range(0, len(missing)):
-                logger.info(
-                    f"{self.user_data['username']} ({self.user_data['email']}) - {i+1}. Reward: {missing[i]['reward']}\t{missing[i]['title']}"
-                )
+            self.logger_info(f"Challenge missing: {len(missing)}/{len(challenges)}")
+            if print_challenges is True:
+                for i in range(0, len(missing)):
+                    self.logger_info(
+                        f"{i+1}. Reward: {missing[i]['reward']}\t{missing[i]['title']}"
+                    )
         except Exception as e:
             logger.exception(e)
 
@@ -292,9 +292,8 @@ class WeWard:
                 "campaign_id": campaign_id,
             }
             response = requests.post(url, headers=self.headers, json=payload)
-            logger.info(
-                f"{self.user_data['username']} ({self.user_data['email']}) - {response['message']}"
-            )
+            response = response.json()
+            self.logger_info(response["message"])
         except Exception as e:
             logger.exception(e)
 
@@ -303,12 +302,10 @@ class WeWard:
             url = "https://backend.prod.weward.fr/api/v1.0/ads_reward_v2"
             response = requests.post(url, headers=self.headers)
             response = response.json()
-            logger.info(
-                f"{self.user_data['username']} ({self.user_data['email']}) - {response['message']}"
-            )
+            self.logger_info(response["message"])
             if response["time_remaining_sec"] > 0 and retry is True:
-                logger.info(
-                    f"{self.user_data['username']} ({self.user_data['email']}) - Retry after {response['time_remaining_sec'] + 30} seconds"
+                self.logger_info(
+                    f"Retry after {response['time_remaining_sec'] + 30} seconds"
                 )
                 time.sleep(response["time_remaining_sec"] + 30)
                 self.ads_reward_v2()
@@ -336,17 +333,13 @@ class WeWard:
             "data_sources": ["STEP_COUNTER"],
         }
         response = requests.post(url, headers=self.headers, json=payload)
-        logger.info(
-            f"{self.user_data['username']} ({self.user_data['email']}) - steps={steps} {response.text}"
-        )
+        self.logger_info(f"steps={steps} {response.text}")
 
     def valid_step(self):
         url = "https://backend.prod.weward.fr/api/v1.0/valid_step"
         response = requests.post(url, headers=self.headers)
         response = response.json()
-        logger.info(
-            f"{self.user_data['username']} ({self.user_data['email']}) - {response['message']}"
-        )
+        self.logger_info(response["message"])
         self.last_steps = (
             response["valid_step"] if response["valid_step"] < 20000 else 0
         )
@@ -443,8 +436,8 @@ class WeWard:
             if steps > self.last_steps:
                 if skip_sleep is False:
                     sleep = 60 * random.uniform(15, 45)
-                    logger.info(
-                        f"{self.user_data['username']} ({self.user_data['email']}) - Job number: {job_number}, steps: {steps}. Sleep for {sleep // 60}m"
+                    self.logger_info(
+                        f"Job number: {job_number}, steps: {steps}. Sleep for {sleep // 60}m"
                     )
                     time.sleep(sleep)
 
@@ -453,10 +446,10 @@ class WeWard:
 
                 time.sleep(5)
                 self.get_profile()
-                self.print_missing_challenge()
+                self.load_challenges()
             else:
-                logger.info(
-                    f"{self.user_data['username']} ({self.user_data['email']}) - We should convalidate: {steps}, but we have already convalidate: {self.last_steps}"
+                self.logger_info(
+                    f"We should convalidate: {steps}, but we have already convalidate: {self.last_steps}"
                 )
         except Exception as e:
             logger.exception(e)
@@ -471,23 +464,33 @@ class WeWard:
             or skip_night is False
         ):
             campaigns = self.location_campaign(latitude, longitude)
-            campaigns = [c for c in campaigns if c["id"] not in self.already_visited]
-            for i in range(0, len(campaigns)):
-                logger.info(
-                    f"{self.user_data['username']} ({self.user_data['email']}) - {i+1}. Reward: {campaigns[i]['reward']}\t{campaigns[i]['title']} ({campaigns[i]['address']})"
+            campaigns = [
+                c
+                for c in campaigns
+                if c["id"] not in self.already_visited and c["reward"] > 0
+            ]
+            if campaigns != []:
+                """
+                for i in range(0, len(campaigns)):
+                    self.logger_info(f"{i+1}. Reward: {campaigns[i]['reward']}\t{campaigns[i]['title']} ({campaigns[i]['address']})")
+                """
+                selected = random.choice(campaigns)
+                self.logger_info(
+                    f"Reward: {selected['reward']}\t{selected['title']} ({selected['address']})"
                 )
-            selected = random.choice(campaigns)
-            campaign_latitude = selected["location_config"]["latitude"] + (
-                random.randint(-10, 10)
-            )
-            campaign_longitude = selected["location_config"]["longitude"] + (
-                random.randint(-10, 10)
-            )
-            self.reward_visit_campaign(
-                campaign_latitude, campaign_longitude, selected["id"]
-            )
-            self.already_visited.append(selected["id"])
+                campaign_latitude = selected["location_config"]["latitude"] + (
+                    random.randint(-5000, 5000) / 100000000000
+                )
+                campaign_longitude = selected["location_config"]["longitude"] + (
+                    random.randint(-5000, 5000) / 100000000000
+                )
+                self.reward_visit_campaign(
+                    campaign_latitude, campaign_longitude, selected["id"]
+                )
+                self.already_visited.append(selected["id"])
+            else:
+                self.logger_info(
+                    f"0 Campaigns left with this coordinate ({latitude}, {longitude})"
+                )
         else:
-            logger.info(
-                f"{self.user_data['username']} ({self.user_data['email']}) - Probably we should sleep at this time"
-            )
+            self.logger_info("Probably we should sleep at this time")
