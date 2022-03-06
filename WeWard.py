@@ -48,6 +48,7 @@ class WeWard:
         self.print_missing_challenge()
 
         self.strict_challenges = []
+        self.already_visited = []
         self.last_steps = 0
 
     def change_country(self, country):
@@ -276,6 +277,7 @@ class WeWard:
             url = "https://backend.prod.weward.fr/api/v1.0/location_campaign"
             response = requests.get(url, headers=self.headers, params=params)
             response = response.json()
+            return response["campaigns"]
         except Exception as e:
             logger.exception(e)
 
@@ -458,3 +460,34 @@ class WeWard:
                 )
         except Exception as e:
             logger.exception(e)
+
+    # For the truth, skip_night It is useless, as we often watch videos even at night
+    def random_location_campaign(self, latitude, longitude, skip_night=True):
+        morning = datetime.datetime.now().replace(hour=8, minute=00)
+        evening = datetime.datetime.now().replace(hour=21, minute=00)
+        if (
+            datetime.datetime.now() >= morning
+            and datetime.datetime.now() <= evening
+            or skip_night is False
+        ):
+            campaigns = self.location_campaign(latitude, longitude)
+            campaigns = [c for c in campaigns if c["id"] not in self.already_visited]
+            for i in range(0, len(campaigns)):
+                logger.info(
+                    f"{self.user_data['username']} ({self.user_data['email']}) - {i+1}. Reward: {campaigns[i]['reward']}\t{campaigns[i]['title']} ({campaigns[i]['address']})"
+                )
+            selected = random.choice(campaigns)
+            campaign_latitude = selected["location_config"]["latitude"] + (
+                random.randint(-10, 10)
+            )
+            campaign_longitude = selected["location_config"]["longitude"] + (
+                random.randint(-10, 10)
+            )
+            self.reward_visit_campaign(
+                campaign_latitude, campaign_longitude, selected["id"]
+            )
+            self.already_visited.append(selected["id"])
+        else:
+            logger.info(
+                f"{self.user_data['username']} ({self.user_data['email']}) - Probably we should sleep at this time"
+            )
