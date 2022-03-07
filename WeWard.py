@@ -147,7 +147,10 @@ class WeWard:
         response = self.google_verify_custom_token(custom_token)
         refresh_token = response["refreshToken"]
         response = self.google_get_id_token(refresh_token)
-        id_token = response["id_token"]
+        try:
+            id_token = response["id_token"]
+        except:
+            id_token = response["idToken"]
         return self.signin_with_id_token(id_token)
 
     @staticmethod

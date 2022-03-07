@@ -8,6 +8,15 @@ With **WeWard-Miner** you can easily farm accounts or points. The project is bas
 ### Usage
 Install all the requirements from requirements.txt files and then create your script or use one of my POC.
 
+#### Recover account
+
+You can retieve an account with:
+```sh
+python request_account.py <email>
+```
+- You will need to access your mailbox and copy the link on the Weward login button to enter it when the script tells you to.
+- At the end, the script will generate a session `.json` file.
+
 #### Create account
 
 You can create a new account with:
