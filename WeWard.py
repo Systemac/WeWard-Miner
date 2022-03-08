@@ -153,6 +153,11 @@ class WeWard:
             id_token = response["idToken"]
         return self.signin_with_id_token(id_token)
 
+    def signin(self, custom_token):
+        response = self.google_verify_custom_token(custom_token)
+        id_token = response["idToken"]
+        return self.signin_with_id_token(id_token)
+
     @staticmethod
     def get_url_from_email(username, password, host="imap.mail.ru", top_email=5):
         imap = imaplib.IMAP4_SSL(host)
